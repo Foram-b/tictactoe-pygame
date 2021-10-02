@@ -82,10 +82,15 @@ class Textbox:
                 self.update_text()
 
     def change_mode(self):
+        if self.active:
+            self.color=color_active
+        else:
+            self.color=color_passive
         # draw rectangle and argument passed which should
         # be on screen
         pygame.draw.rect(self.screen, self.color, self.input_rect)
         self.update_text()
+
 
     def update_text(self):
         self.text_surface = base_font.render(self.user_text, True, (255, 255, 255))
@@ -94,7 +99,7 @@ class Textbox:
 
         # set width of textfield so that text cannot get
         # outside of user's text input
-        self.input_rect.w = max(100, self.text_surface.get_width() + 10)
+        self.input_rect.w = max(140, self.text_surface.get_width() + 10)
 
 def draw_grid():
     gap = WIDTH // ROWS
@@ -143,6 +148,8 @@ def show_login(input_name):
             if pygame.MOUSEBUTTONDOWN == event.type or pygame.KEYDOWN == event.type:
                 xlogin.update_for_event(event)
                 ologin.update_for_event(event)
+                xpassword.update_for_event(event)
+                ypassword.update_for_event(event)
                 # display.flip() will update only a portion of the
                 # screen to updated, not full area
                 pygame.display.flip()
