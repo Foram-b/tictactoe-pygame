@@ -8,13 +8,17 @@ WIDTH = 600
 ROWS = 3
 win = pygame.display.set_mode((WIDTH, WIDTH))
 
+
 # Colors
 WHITE = (255, 255, 255)
+TEAL = (175, 240, 234)
 BLACK = (0, 0, 0)
 GRAY = (200, 200, 200)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
+LIGHT_YELLOW = (240, 240, 175)
 
+win.fill(TEAL)
 # Images
 X_IMAGE = pygame.transform.scale(pygame.image.load("images/x.png"), (80, 80))
 O_IMAGE = pygame.transform.scale(pygame.image.load("images/o.png"), (80, 80))
@@ -36,18 +40,71 @@ color_active = pygame.Color('lightskyblue3')
 # color of input box.
 color_passive = pygame.Color('chartreuse4')
 
+color_button = pygame.Color(LIGHT_YELLOW)
+
+
+def password_check(passwd):
+    SpecialSym = ['$', '@', '#', '%']
+    val = True
+
+    if len(passwd) < 6:
+        print('length should be at least 6')
+        val = False
+
+    if len(passwd) > 20:
+        print('length should be not be greater than 8')
+        val = False
+
+    if not any(char.isdigit() for char in passwd):
+        print('Password should have at least one numeral')
+        val = False
+
+    if not any(char.isalpha() for char in passwd):
+        print('Password should have at least one Alphabet')
+        val = False
+
+    if not any(char in SpecialSym for char in passwd):
+        print('Password should have at least one of the symbols $@#%')
+        val = False
+    if val:
+        return val
+
+
+class Button:
+    def __init__(self, screen, text, X, Y):
+        self.input_rect = pygame.Rect(X, Y, 140, 32)
+        self.color = color_button
+        self.text = text
+        self.text_surface = base_font.render(self.text, True, (255, 255, 255))
+        self.screen = screen
+        pygame.draw.rect(self.screen, self.color, self.input_rect)
+        # render at position stated in arguments
+        self.screen.blit(self.text_surface, (self.input_rect.x + 5, self.input_rect.y + 5))
+
+        # set width of textfield so that text cannot get
+        # outside of user's text input
+        self.input_rect.w = max(140, self.text_surface.get_width() + 10)
+
+    def clicked(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if self.input_rect.collidepoint(event.pos):
+                return True
+        return False
+
 
 class Textbox:
-    def __init__(self, screen, X, Y) -> object:
+    def __init__(self, screen, X, Y, text) -> object:
         self.input_rect = pygame.Rect(X, Y, 140, 32)
         self.color = color_passive
         self.user_text = ""
+        self.text = text
         self.active = False
         self.text_surface = base_font.render(self.user_text, True, (255, 255, 255))
         self.screen = screen
         pygame.draw.rect(self.screen, self.color, self.input_rect)
+        self.label_surface = base_font.render(self.text, True, (255, 255, 255))
+        self.screen.blit(self.label_surface, (self.input_rect.x - 180, self.input_rect.y + 5))
         self.change_mode()
-
 
     def update_for_event(self, event):
         """
@@ -91,7 +148,6 @@ class Textbox:
         pygame.draw.rect(self.screen, self.color, self.input_rect)
         self.update_text()
 
-
     def update_text(self):
         self.text_surface = base_font.render(self.user_text, True, (255, 255, 255))
         # render at position stated in arguments
@@ -114,21 +170,34 @@ def draw_grid():
         pygame.draw.line(win, GRAY, (x, 0), (x, WIDTH), 3)
         pygame.draw.line(win, GRAY, (0, x), (WIDTH, x), 3)
 
+def start_game(xlogin, ologin, xpass, opass):
+    """
+    this will validate login screen and start the game.
+    :param xlogin:
+    :type xlogin:
+    :param ologin:
+    :type ologin:
+    :param xpass:
+    :type xpass:
+    :param opass:
+    :type opass:
+    :return:
+    :rtype:
+    """
+    return True
 
-def show_login(input_name):
+
+def show_login():
 
     clock = pygame.time.Clock()
 
-    # it will display on screen
-    login_screen = pygame.display.set_mode([600, 500])
+    xlogin = Textbox(win, 200, 100, "X LOGIN")
+    xpassword = Textbox(win, 200, 140, "X PASSWORD")
 
-    xlogin = Textbox(login_screen, 200, 100)
+    ologin = Textbox(win, 200, 300, "O LOGIN")
+    opassword = Textbox(win, 200, 340, "O PASSWORD")
 
-    ologin = Textbox(login_screen, 200, 200)
-    
-    xpassword = Textbox(login_screen, 200, 300)
-    
-    ypassword = Textbox(login_screen, 200, 400)
+    start_button = Button(win, "Start >", 450, 500)
 
     # display.flip() will update only a portion of the
     # screen to updated, not full area
@@ -149,10 +218,24 @@ def show_login(input_name):
                 xlogin.update_for_event(event)
                 ologin.update_for_event(event)
                 xpassword.update_for_event(event)
-                ypassword.update_for_event(event)
+                opassword.update_for_event(event)
                 # display.flip() will update only a portion of the
                 # screen to updated, not full area
                 pygame.display.flip()
+
+            if pygame.MOUSEBUTTONDOWN == event.type:
+                start = start_button.clicked(event)
+                pygame.display.flip()
+                if start:
+                    if password_check(xpassword.user_text) and \
+                        password_check(opassword.user_text) and \
+                            xlogin.user_text.strip() != "" and \
+                            ologin.user_text.strip() != "" and \
+                            xlogin.user_text != ologin.user_text:
+                        print("Lets Begin !")
+                        return xlogin.user_text, ologin.user_text, xpassword.user_text, opassword.user_text
+                    else:
+                        print("Correct Errors for starting game.")
 
 
 
@@ -206,45 +289,53 @@ def click(game_array):
 
 
 # Checking if someone has won
-def has_won(game_array):
+def has_won(game_array, x_login, o_login):
     global x_won, o_won
     # Checking rows
 
     for row in range(len(game_array)):
         if (game_array[row][0][2] == game_array[row][1][2] == game_array[row][2][2]) and game_array[row][0][2] != "":
-            display_message(game_array[row][0][2].upper() + " has won!")
             if game_array[row][0][2].upper() == 'X':
                 x_won = x_won + 1
+                who = x_login
             else:
                 o_won = o_won + 1
+                who = o_login
+            display_message(game_array[row][0][2].upper() + ": " + who + " has won!")
             return True
 
     # Checking columns
     for col in range(len(game_array)):
         if (game_array[0][col][2] == game_array[1][col][2] == game_array[2][col][2]) and game_array[0][col][2] != "":
-            display_message(game_array[0][col][2].upper() + " has won!")
             if game_array[row][0][2].upper() == 'X':
                 x_won = x_won + 1
+                who = x_login
             else:
                 o_won = o_won + 1
+                who = o_login
+            display_message(game_array[0][col][2].upper() + ": " + who + " has won!")
             return True
 
     # Checking main diagonal
     if (game_array[0][0][2] == game_array[1][1][2] == game_array[2][2][2]) and game_array[0][0][2] != "":
-        display_message(game_array[0][0][2].upper() + " has won!")
         if game_array[row][0][2].upper() == 'X':
             x_won = x_won + 1
+            who = x_login
         else:
             o_won = o_won + 1
+            who = o_login
+        display_message(game_array[0][0][2].upper() + ": " + who + " has won!")
         return True
 
     # Checking reverse diagonal
     if (game_array[0][2][2] == game_array[1][1][2] == game_array[2][0][2]) and game_array[0][2][2] != "":
-        display_message(game_array[0][2][2].upper() + " has won!")
         if game_array[row][0][2].upper() == 'X':
             x_won = x_won + 1
+            who = x_login
         else:
             o_won = o_won + 1
+            who = o_login
+        display_message(game_array[0][2][2].upper() + ": " + who + " has won!")
         return True
 
     return False
@@ -282,7 +373,7 @@ def render():
     pygame.display.update()
 
 
-def main():
+def main(x_login, o_login):
     global x_turn, o_turn, images, draw
 
     images = []
@@ -293,7 +384,7 @@ def main():
     x_turn = True
     o_turn = False
 
-    show_login("X USER")
+
     pygame.display.update()
 
     game_array = initialize_grid()
@@ -307,11 +398,12 @@ def main():
 
         render()
 
-        if has_won(game_array) or has_drawn(game_array):
+        if has_won(game_array, x_login, o_login) or has_drawn(game_array):
             run = False
 
 
-while True:
-    if __name__ == '__main__':
-        pygame.display.set_caption("TicTacToe  X-{}  O-{}".format(x_won, o_won))
-        main()
+if __name__ == '__main__':
+    x_login, o_login, x_pass, o_pass = show_login()
+    while True:
+        pygame.display.set_caption("TicTacToe  X:{}-{}  O:{}-{}".format(x_login, x_won, o_login, o_won))
+        main(x_login, o_login)
