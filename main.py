@@ -38,7 +38,7 @@ color_passive = pygame.Color('chartreuse4')
 
 
 class Textbox:
-    def __init__(self, screen, X, Y):
+    def __init__(self, screen, X, Y) -> object:
         self.input_rect = pygame.Rect(X, Y, 140, 32)
         self.color = color_passive
         self.user_text = ""
@@ -117,9 +117,13 @@ def show_login(input_name):
     # it will display on screen
     login_screen = pygame.display.set_mode([600, 500])
 
-    xlogin = Textbox(login_screen, 200, 200)
+    xlogin = Textbox(login_screen, 200, 100)
 
-    ologin = Textbox(login_screen, 200, 300)
+    ologin = Textbox(login_screen, 200, 200)
+    
+    xpassword = Textbox(login_screen, 200, 300)
+    
+    ypassword = Textbox(login_screen, 200, 400)
 
     # display.flip() will update only a portion of the
     # screen to updated, not full area
