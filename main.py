@@ -509,7 +509,11 @@ if __name__ == '__main__':
     login_status=validate_user(x_login, x_pass) and validate_user(o_login, o_pass)
     if not login_status:
         print("enter correct login details and retry")
+    else:
+        pass
+        #get score and set x_won and y_won
     while login_status:
-        #get results
         pygame.display.set_caption("TicTacToe  X:{}-{}  O:{}-{}".format(x_login, x_won, o_login, o_won))
         main(x_login, o_login)
+        update_score(x_login,x_score,y_login,y_score)
+
