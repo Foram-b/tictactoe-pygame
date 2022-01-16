@@ -1,5 +1,106 @@
 import pygame
 import math
+import mysql.connector
+
+
+cnx = mysql.connector.connect(user='root', password='abc123foram',
+                              host='127.0.0.1',
+                              database='projectgame')
+cursor = cnx.cursor()
+
+query = ("SELECT login, password FROM user_login")
+cursor.execute(query)
+login_dict={}
+
+
+
+
+
+for (login, password) in cursor:
+  login_dict[login]=password
+
+def validate_user(login,password):
+    if login_dict.get(login) != None and login_dict.get(login) == password:
+        return True
+    else:
+
+        # Creating a cursor object using the cursor() method
+        cursor = conn.cursor()
+
+        # Preparing SQL query to INSERT a record into the database.
+        insert_stmt = (
+            "INSERT INTO user_login(login, password)"
+            "VALUES (%s, %s)"
+        )
+        data = (login, password)
+
+        try:
+            # Executing the SQL command
+            cursor.execute(insert_stmt, data)
+
+            # Commit your changes in the database
+            conn.commit()
+
+        except:
+            # Rolling back in case of error
+            conn.rollback()
+
+        print("Data inserted")
+
+        # Closing the connection
+        conn.close()
+        return False
+
+
+def update_score(xlogin,xscore,ylogin,yscore):
+    query = ("SELECT xlogin,xscore,ylogin,yscore FROM scoreswins where xlogin={} and ylogin={}".format(xlogin,ylogin))
+    cursor.execute(query)
+    if len(cursor)>0:
+        mycursor = mydb.cursor()
+
+        sql = "UPDATE scoreswins SET scorex = xscore and scorey = yscore WHERE loginx = xlogin and loginy = ylogin"
+
+        mycursor.execute(sql)
+
+        mydb.commit()
+
+        print(mycursor.rowcount, "record(s) affected")
+    else:
+
+        # Creating a cursor object using the cursor() method
+        cursor = conn.cursor()
+
+        # Preparing SQL query to INSERT a record into the database.
+        insert_stmt = (
+            "INSERT INTO scoreswins(loginx, scorex, loginy,scorey)"
+            "VALUES (%s, %s, %s, %s)"
+        )
+        data = (xlogin, xscore, ylogin, yscore)
+
+        try:
+            # Executing the SQL command
+            cursor.execute(insert_stmt, data)
+
+            # Commit your changes in the database
+            conn.commit()
+
+        except:
+            # Rolling back in case of error
+            conn.rollback()
+
+        print("Data inserted")
+
+        # Closing the connection
+        conn.close()
+
+
+
+
+
+
+
+
+cnx.close()
 
 pygame.init()
 
@@ -16,7 +117,7 @@ BLACK = (0, 0, 0)
 GRAY = (200, 200, 200)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
-LIGHT_YELLOW = (240, 240, 175)
+
 
 win.fill(TEAL)
 # Images
@@ -38,9 +139,9 @@ color_active = pygame.Color('lightskyblue3')
 
 # color_passive store color(chartreuse4) which is
 # color of input box.
-color_passive = pygame.Color('chartreuse4')
+color_passive = pygame.Color(64,39,17)
 
-color_button = pygame.Color(LIGHT_YELLOW)
+color_button = pygame.Color(8,8,8)
 
 
 def password_check(passwd):
@@ -70,12 +171,13 @@ def password_check(passwd):
         return val
 
 
+
 class Button:
     def __init__(self, screen, text, X, Y):
         self.input_rect = pygame.Rect(X, Y, 140, 32)
         self.color = color_button
         self.text = text
-        self.text_surface = base_font.render(self.text, True, (255, 255, 255))
+        self.text_surface = base_font.render(self.text, True, (255,255,255))
         self.screen = screen
         pygame.draw.rect(self.screen, self.color, self.input_rect)
         # render at position stated in arguments
@@ -99,10 +201,10 @@ class Textbox:
         self.user_text = ""
         self.text = text
         self.active = False
-        self.text_surface = base_font.render(self.user_text, True, (255, 255, 255))
+        self.text_surface = base_font.render(self.user_text, True, (8,8,8))
         self.screen = screen
         pygame.draw.rect(self.screen, self.color, self.input_rect)
-        self.label_surface = base_font.render(self.text, True, (255, 255, 255))
+        self.label_surface = base_font.render(self.text, True, (8,8,8))
         self.screen.blit(self.label_surface, (self.input_rect.x - 180, self.input_rect.y + 5))
         self.change_mode()
 
@@ -149,7 +251,7 @@ class Textbox:
         self.update_text()
 
     def update_text(self):
-        self.text_surface = base_font.render(self.user_text, True, (255, 255, 255))
+        self.text_surface = base_font.render(self.user_text, True, (255,255,255))
         # render at position stated in arguments
         self.screen.blit(self.text_surface, (self.input_rect.x + 5, self.input_rect.y + 5))
 
@@ -404,6 +506,10 @@ def main(x_login, o_login):
 
 if __name__ == '__main__':
     x_login, o_login, x_pass, o_pass = show_login()
-    while True:
+    login_status=validate_user(x_login, x_pass) and validate_user(o_login, o_pass)
+    if not login_status:
+        print("enter correct login details and retry")
+    while login_status:
+        #get results
         pygame.display.set_caption("TicTacToe  X:{}-{}  O:{}-{}".format(x_login, x_won, o_login, o_won))
         main(x_login, o_login)
